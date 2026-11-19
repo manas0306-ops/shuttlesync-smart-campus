@@ -17,11 +17,13 @@ import {
 interface RegisterPageProps {
   onSwitchToLogin: () => void;
   onSuccess?: () => void;
+  onClose?: () => void;
 }
 
 export const RegisterPage: React.FC<RegisterPageProps> = ({
   onSwitchToLogin,
   onSuccess,
+  onClose,
 }) => {
   const { signUp } = useAuth();
 
@@ -95,7 +97,16 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-slate-900/90 backdrop-blur-2xl rounded-3xl p-7 md:p-8 border border-sky-500/25 shadow-[0_20px_60px_rgba(0,0,0,0.7)] text-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
+      <div className="w-full max-w-md mx-auto bg-slate-900/95 backdrop-blur-2xl rounded-3xl p-7 md:p-8 border border-sky-500/25 shadow-[0_20px_60px_rgba(0,0,0,0.7)] text-slate-100 relative">
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-md text-sm font-bold"
+          >
+            ✕
+          </button>
+        )}
       {/* Header */}
       <div className="text-center space-y-2 mb-6">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-teal-400 p-0.5 shadow-lg shadow-sky-500/25 mb-1">
@@ -267,6 +278,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
         >
           Sign In
         </button>
+      </div>
       </div>
     </div>
   );

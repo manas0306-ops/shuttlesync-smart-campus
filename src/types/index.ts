@@ -150,3 +150,34 @@ export interface JourneyHistoryEntry {
   durationMinutes: number;
   timestamp: string;
 }
+
+
+export interface DriverRecord {
+  id: string;
+  name: string;
+  driverCode: string;
+  assignedVehicleId: string;
+  assignedRouteId: string;
+  phone: string;
+  dutyStatus: 'On Duty' | 'On Break' | 'Off Duty';
+  shiftHours: string;
+  rating: number;
+  totalTripsToday: number;
+  lastLocationUpdate: string;
+  licenseNumber: string;
+  emergencyContact: string;
+}
+
+export interface StudentTransitRecord {
+  id: string;
+  name: string;
+  registrationId: string;
+  email: string;
+  department: string;
+  hostelOrDayScholar: string;
+  primaryRoute: string;
+  passStatus: 'Active Pass' | 'Semester Pass' | 'Special Permit';
+  totalTripsThisMonth: number;
+  carbonCreditsKg: number;
+  lastRideDate: string;
+}

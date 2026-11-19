@@ -40,8 +40,8 @@ export const RoutePlannerView: React.FC = () => {
   const availableJourneys: RouteJourney[] = [
     {
       id: 'journey-1',
-      routeName: 'Route 303: Hostel-Academics Direct Link',
-      routeColor: '#a855f7',
+      routeName: 'Route R-303: Hostel-Academics Direct Link',
+      routeColor: '#9333ea',
       shuttleId: 'shuttle-s301',
       departureTime: 'Departs in 3 mins',
       arrivalTime: 'Arrival in 9 mins',
@@ -55,25 +55,25 @@ export const RoutePlannerView: React.FC = () => {
     },
     {
       id: 'journey-2',
-      routeName: 'Route 202: Green Campus Perimeter Loop',
-      routeColor: '#10b981',
+      routeName: 'Route R-202: Green Campus Perimeter Loop',
+      routeColor: '#16a34a',
       shuttleId: 'shuttle-s201',
-      departureTime: 'Departs in 5 mins',
+      departureTime: 'Departs in 6 mins',
       arrivalTime: 'Arrival in 14 mins',
       totalDurationMinutes: 14,
-      walkMinutes: 2,
-      shuttleMinutes: 12,
+      walkMinutes: 3,
+      shuttleMinutes: 11,
       stopsCount: 4,
-      stopsList: [originStop.name, 'Girls Hostel Quad (GH 1-6)', 'Sports Stadium', destStop.name],
-      crowdLevel: 'Low',
+      stopsList: [originStop.name, 'Engineering Quad Block 38', 'Uni-Hospital Gate 2', destStop.name],
+      crowdLevel: 'High',
       carbonSavedKg: 0.95,
     },
     {
       id: 'journey-3',
-      routeName: 'Uni-Mall Walk & Route 101 Transfer',
-      routeColor: '#0284c7',
+      routeName: 'Walk + Route R-101 Campus Express Combo',
+      routeColor: '#2563eb',
       shuttleId: 'shuttle-s101',
-      departureTime: 'Departs in 2 mins',
+      departureTime: 'Departs in 5 mins',
       arrivalTime: 'Arrival in 11 mins',
       totalDurationMinutes: 11,
       walkMinutes: 5,
@@ -91,7 +91,7 @@ export const RoutePlannerView: React.FC = () => {
 
     try {
       confetti({
-        particleCount: 50,
+        particleCount: 40,
         spread: 60,
         origin: { y: 0.8 },
       });
@@ -111,29 +111,21 @@ export const RoutePlannerView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-sky-500/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 text-xs font-semibold mb-2">
-            <Compass className="w-3.5 h-3.5" />
-            LPU Campus Transit Routing Engine
-          </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Smart Campus Route Planner</h2>
-          <p className="text-sm text-slate-400 mt-1">
-            Compare walking transfers, EV shuttle connections, arrival durations, and carbon savings across LPU campus.
-          </p>
-        </div>
-
-        <span className="text-xs text-sky-400 bg-sky-400/10 border border-sky-400/20 px-3 py-1 rounded-full font-semibold">
-          Lovely Professional University, Phagwara
-        </span>
+      <div>
+        <h2 className="text-xl font-black text-slate-900 tracking-tight">
+          Campus Journey & Route Planner
+        </h2>
+        <p className="text-xs text-slate-500 mt-0.5">
+          Compare multi-modal walking transfers, EV shuttle connections, arrival durations, and carbon savings
+        </p>
       </div>
 
       {/* Origin & Destination Bar */}
-      <div className="bg-slate-900/80 rounded-2xl border border-slate-800 p-6">
+      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
         <div className="flex flex-col md:flex-row items-center gap-3">
           {/* Origin */}
-          <div className="flex-1 w-full bg-slate-800/80 rounded-xl p-3 border border-slate-700/80 flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-emerald-400 shrink-0" />
+          <div className="flex-1 w-full bg-slate-50 rounded-lg p-2.5 border border-slate-200 flex items-center gap-2.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
             <div className="flex-1">
               <label className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
                 Starting Location (Pickup)
@@ -141,11 +133,11 @@ export const RoutePlannerView: React.FC = () => {
               <select
                 value={originId}
                 onChange={e => setOriginId(e.target.value)}
-                className="w-full bg-transparent text-sm font-bold text-white focus:outline-none cursor-pointer mt-0.5"
+                className="w-full bg-transparent text-slate-900 text-xs font-bold focus:outline-none cursor-pointer mt-0.5"
               >
-                {CAMPUS_STOPS.map(s => (
-                  <option key={s.id} value={s.id} className="bg-slate-900 text-slate-200">
-                    {s.code} - {s.name}
+                {CAMPUS_STOPS.map(stop => (
+                  <option key={stop.id} value={stop.id} className="bg-white text-slate-900">
+                    {stop.code} — {stop.name}
                   </option>
                 ))}
               </select>
@@ -155,27 +147,27 @@ export const RoutePlannerView: React.FC = () => {
           {/* Swap Button */}
           <button
             onClick={handleSwapStops}
-            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all active:scale-90"
+            className="p-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors shrink-0"
             title="Swap Origin and Destination"
           >
-            <ArrowUpDown className="w-4 h-4 text-sky-400" />
+            <ArrowUpDown className="w-4 h-4" />
           </button>
 
           {/* Destination */}
-          <div className="flex-1 w-full bg-slate-800/80 rounded-xl p-3 border border-slate-700/80 flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-sky-400 shrink-0" />
+          <div className="flex-1 w-full bg-slate-50 rounded-lg p-2.5 border border-slate-200 flex items-center gap-2.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0" />
             <div className="flex-1">
               <label className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-                Target Destination (Dropoff)
+                Destination (Drop-off)
               </label>
               <select
                 value={destinationId}
                 onChange={e => setDestinationId(e.target.value)}
-                className="w-full bg-transparent text-sm font-bold text-white focus:outline-none cursor-pointer mt-0.5"
+                className="w-full bg-transparent text-slate-900 text-xs font-bold focus:outline-none cursor-pointer mt-0.5"
               >
-                {CAMPUS_STOPS.map(s => (
-                  <option key={s.id} value={s.id} className="bg-slate-900 text-slate-200">
-                    {s.code} - {s.name}
+                {CAMPUS_STOPS.map(stop => (
+                  <option key={stop.id} value={stop.id} className="bg-white text-slate-900">
+                    {stop.code} — {stop.name}
                   </option>
                 ))}
               </select>
@@ -184,129 +176,112 @@ export const RoutePlannerView: React.FC = () => {
         </div>
       </div>
 
-      {/* Available Journeys Cards */}
+      {/* Suggested Itineraries */}
       <div className="space-y-4">
-        <h3 className="text-base font-bold text-white flex items-center gap-2">
-          <Navigation className="w-4 h-4 text-sky-400" />
-          Recommended Routes ({availableJourneys.length} Options Available)
+        <h3 className="text-sm font-bold text-slate-900">
+          Suggested Route Options ({availableJourneys.length})
         </h3>
 
-        <div className="grid grid-cols-1 gap-4">
-          {availableJourneys.map(journey => {
+        <div className="space-y-3">
+          {availableJourneys.map((journey, i) => {
             const isSelected = selectedJourneyId === journey.id;
             const isExpanded = expandedJourneyId === journey.id;
 
             return (
               <div
                 key={journey.id}
-                className={`bg-slate-900/80 rounded-2xl border transition-all p-5 ${
+                className={`bg-white rounded-xl border transition-all shadow-xs overflow-hidden ${
                   isSelected
-                    ? 'border-sky-500/60 shadow-lg shadow-sky-500/10'
-                    : 'border-slate-800 hover:border-slate-700'
+                    ? 'border-blue-600 ring-2 ring-blue-500/20'
+                    : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
-                {/* Journey Card Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
+                <div className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm"
-                      style={{
-                        backgroundColor: `${journey.routeColor}20`,
-                        color: journey.routeColor,
-                        border: `1px solid ${journey.routeColor}40`,
-                      }}
+                      className="w-10 h-10 rounded-lg text-white flex items-center justify-center shrink-0 font-bold text-xs shadow-2xs"
+                      style={{ backgroundColor: journey.routeColor }}
                     >
-                      <Bus className="w-6 h-6" />
+                      <Bus className="w-5 h-5" />
                     </div>
 
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="text-base font-bold text-white">{journey.routeName}</h4>
-                        <Badge crowdLevel={journey.crowdLevel} />
+                        <h4 className="text-sm font-bold text-slate-900">{journey.routeName}</h4>
+                        {i === 0 && (
+                          <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
+                            Fastest Option
+                          </span>
+                        )}
                       </div>
-                      <div className="text-xs text-slate-400 mt-1 flex items-center gap-3">
-                        <span className="text-emerald-400 font-semibold">{journey.departureTime}</span>
+
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 mt-1">
+                        <span className="flex items-center gap-1 font-semibold text-slate-800">
+                          <Clock className="w-3.5 h-3.5 text-blue-600" />
+                          {journey.totalDurationMinutes} mins total
+                        </span>
                         <span>•</span>
-                        <span>{journey.arrivalTime}</span>
+                        <span className="flex items-center gap-1">
+                          <Footprints className="w-3.5 h-3.5" />
+                          {journey.walkMinutes} min walk
+                        </span>
                         <span>•</span>
-                        <span className="flex items-center gap-1 text-slate-300">
-                          <Leaf className="w-3.5 h-3.5 text-emerald-400" />
-                          -{journey.carbonSavedKg} kg CO₂ offset
+                        <span>{journey.stopsCount} stops</span>
+                        <span>•</span>
+                        <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                          <Leaf className="w-3.5 h-3.5" />
+                          {journey.carbonSavedKg} kg CO₂ saved
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-4">
-                    <div className="text-left sm:text-right">
-                      <div className="text-2xl font-black text-white tabular-nums">
-                        {journey.totalDurationMinutes} min
-                      </div>
-                      <div className="text-[11px] text-slate-400">
-                        {journey.walkMinutes}m walk + {journey.shuttleMinutes}m transit
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2.5 self-end md:self-auto">
+                    <button
+                      onClick={() => setExpandedJourneyId(isExpanded ? null : journey.id)}
+                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 px-2.5 py-1.5 rounded-md hover:bg-slate-100 transition-colors flex items-center gap-1"
+                    >
+                      {isExpanded ? 'Hide Steps' : 'View Steps'}
+                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
 
                     <button
                       onClick={() => handleSelectJourney(journey)}
-                      className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 ${
+                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 ${
                         isSelected
-                          ? 'bg-sky-500 text-white shadow-sky-500/25'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
                       }`}
                     >
-                      <CheckCircle2 className="w-4 h-4" />
-                      {isSelected ? 'Selected' : 'Choose Journey'}
+                      {isSelected ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Selected
+                        </>
+                      ) : (
+                        'Select Journey'
+                      )}
                     </button>
                   </div>
                 </div>
 
-                {/* Waypoint Preview Bar */}
-                <div className="mt-4 pt-4 border-t border-slate-800">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs text-slate-300 font-medium overflow-x-auto pb-1">
-                      <span className="flex items-center gap-1 bg-slate-800 px-2.5 py-1 rounded-lg">
-                        <Footprints className="w-3.5 h-3.5 text-sky-400" /> {journey.walkMinutes}m walk
-                      </span>
-                      <ArrowRight className="w-3 h-3 text-slate-600 shrink-0" />
-                      <span className="flex items-center gap-1 bg-slate-800 px-2.5 py-1 rounded-lg">
-                        <Bus className="w-3.5 h-3.5" style={{ color: journey.routeColor }} />
-                        {journey.stopsCount} stops ({journey.shuttleMinutes}m)
-                      </span>
-                      <ArrowRight className="w-3 h-3 text-slate-600 shrink-0" />
-                      <span className="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg font-semibold">
-                        Arrive at Destination
-                      </span>
+                {/* Expanded Steps Timeline */}
+                {isExpanded && (
+                  <div className="px-5 pb-5 pt-2 border-t border-slate-100 bg-slate-50/50">
+                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      Turn-by-Turn Journey Segments
                     </div>
-
-                    <button
-                      onClick={() => setExpandedJourneyId(isExpanded ? null : journey.id)}
-                      className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1 font-semibold ml-2 shrink-0"
-                    >
-                      {isExpanded ? 'Hide Stops' : 'View Waypoints'}
-                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-
-                  {/* Expanded Stops Timeline */}
-                  {isExpanded && (
-                    <div className="mt-4 p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-3">
-                      <div className="text-xs font-semibold text-slate-400 mb-2">Transit Stops Timeline:</div>
-                      {journey.stopsList.map((stopName, idx) => (
-                        <div key={idx} className="flex items-center gap-3 text-xs">
-                          <div className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-[10px] text-slate-400 shrink-0">
-                            {idx + 1}
+                    <div className="space-y-2 text-xs">
+                      {journey.stopsList.map((stop, sIdx) => (
+                        <div key={sIdx} className="flex items-center gap-2.5 text-slate-700">
+                          <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0">
+                            {sIdx + 1}
                           </div>
-                          <div className="text-slate-200 font-medium">{stopName}</div>
-                          {idx === 0 && <span className="text-[10px] text-emerald-400 font-semibold">(Boarding)</span>}
-                          {idx === journey.stopsList.length - 1 && (
-                            <span className="text-[10px] text-sky-400 font-semibold">(Dropoff)</span>
-                          )}
+                          <span className="font-medium">{stop}</span>
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             );
           })}

@@ -16,6 +16,8 @@ import {
   Navigation2,
   Bus,
   CheckCircle2,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 
 interface GoogleCampusMapProps {
@@ -24,72 +26,77 @@ interface GoogleCampusMapProps {
   heightClass?: string;
 }
 
-// Custom dark mobility theme for Google Maps
-const GOOGLE_MAPS_DARK_THEME: google.maps.MapTypeStyle[] = [
-  { elementType: 'geometry', stylers: [{ color: '#070d1e' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#070d1e' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
+// Enterprise clean light mobility theme for Google Maps
+const GOOGLE_MAPS_LIGHT_THEME: google.maps.MapTypeStyle[] = [
+  { elementType: 'geometry', stylers: [{ color: '#f8fafc' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#ffffff' }, { weight: 3 }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#334155' }] },
   {
     featureType: 'administrative.locality',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#38bdf8' }],
+    stylers: [{ color: '#0f172a' }, { weight: 6 }],
   },
   {
     featureType: 'poi',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#38bdf8' }],
+    stylers: [{ color: '#475569' }],
   },
   {
     featureType: 'poi.park',
     elementType: 'geometry',
-    stylers: [{ color: '#042f2e' }],
+    stylers: [{ color: '#e2f5ea' }],
   },
   {
     featureType: 'poi.school',
     elementType: 'geometry',
-    stylers: [{ color: '#0f172a' }],
+    stylers: [{ color: '#f1f5f9' }],
   },
   {
     featureType: 'road',
     elementType: 'geometry',
-    stylers: [{ color: '#1e293b' }],
+    stylers: [{ color: '#ffffff' }],
   },
   {
     featureType: 'road',
     elementType: 'geometry.stroke',
-    stylers: [{ color: '#0f172a' }],
+    stylers: [{ color: '#cbd5e1' }],
   },
   {
     featureType: 'road.highway',
     elementType: 'geometry',
-    stylers: [{ color: '#0284c7' }, { lightness: -40 }],
+    stylers: [{ color: '#bfdbfe' }],
+  },
+  {
+    featureType: 'road.highway',
+    elementType: 'geometry.stroke',
+    stylers: [{ color: '#60a5fa' }],
   },
   {
     featureType: 'road.highway',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#f8fafc' }],
+    stylers: [{ color: '#1e3a8a' }],
   },
   {
     featureType: 'transit',
     elementType: 'geometry',
-    stylers: [{ color: '#0284c7' }],
+    stylers: [{ color: '#e0f2fe' }],
   },
   {
     featureType: 'water',
     elementType: 'geometry',
-    stylers: [{ color: '#082f49' }],
+    stylers: [{ color: '#dbeafe' }],
   },
   {
     featureType: 'water',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#0284c7' }],
+    stylers: [{ color: '#2563eb' }],
   },
 ];
 
 export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
   onSelectShuttle,
   onSelectStop,
-  heightClass = 'h-[540px]',
+  heightClass = 'h-[560px]',
 }) => {
   const {
     shuttles,
@@ -101,6 +108,7 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
   } = useSimulation();
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapWrapperRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const shuttleMarkersRef = useRef<Map<string, google.maps.Marker>>(new Map());
   const stopMarkersRef = useRef<Map<string, google.maps.Marker>>(new Map());
@@ -113,6 +121,7 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
   const [showConfigModal, setShowConfigModal] = useState<boolean>(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
@@ -136,7 +145,7 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
         const map = new google.maps.Map(mapContainerRef.current, {
           center: LPU_CAMPUS_CENTER,
           zoom: 16,
-          styles: GOOGLE_MAPS_DARK_THEME,
+          styles: GOOGLE_MAPS_LIGHT_THEME,
           disableDefaultUI: true,
           zoomControl: false,
           mapTypeControl: false,
@@ -163,35 +172,37 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
     polylinesRef.current.forEach(p => p.setMap(null));
     polylinesRef.current = [];
 
-    const filtered = SHUTTLE_ROUTES.filter(
+    const routesToRender = SHUTTLE_ROUTES.filter(
       r => activeRouteFilter === 'all' || r.id === activeRouteFilter
     );
 
-    filtered.forEach(route => {
+    routesToRender.forEach(route => {
       const polyline = new google.maps.Polyline({
         path: route.geoCoordinates,
         geodesic: true,
         strokeColor: route.color,
         strokeOpacity: 0.85,
-        strokeWeight: 4,
+        strokeWeight: 5,
         map: mapInstanceRef.current!,
       });
+
       polylinesRef.current.push(polyline);
     });
   }, [mapLoaded, activeRouteFilter]);
 
-  // Render Stops on Google Map
+  // Render Stop Markers on Google Map
   useEffect(() => {
     if (!mapLoaded || !mapInstanceRef.current) return;
 
-    CAMPUS_STOPS.forEach(stop => {
-      if (stopMarkersRef.current.has(stop.id)) return;
+    stopMarkersRef.current.forEach(m => m.setMap(null));
+    stopMarkersRef.current.clear();
 
+    CAMPUS_STOPS.forEach(stop => {
       const stopSvg = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="34" height="42" viewBox="0 0 34 42">
-          <path d="M17 0C7.6 0 0 7.6 0 17c0 11.9 17 25 17 25s17-13.1 17-25C34 7.6 26.4 0 17 0z" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
-          <circle cx="17" cy="17" r="7" fill="#0284c7"/>
-          <text x="17" y="20" font-size="8" font-family="sans-serif" font-weight="bold" fill="#ffffff" text-anchor="middle">${stop.code.replace('ST-', '')}</text>
+          <path d="M17 0 C7.6 0 0 7.6 0 17 C0 29.8 17 42 17 42 C17 42 34 29.8 34 17 C34 7.6 26.4 0 17 0 Z" fill="#0f172a" stroke="#2563eb" stroke-width="2"/>
+          <circle cx="17" cy="16" r="9" fill="#2563eb"/>
+          <text x="17" y="20" font-size="9" font-family="Arial, sans-serif" font-weight="bold" fill="#ffffff" text-anchor="middle">${stop.code.replace('ST-', '')}</text>
         </svg>
       `)}`;
 
@@ -201,8 +212,8 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
         title: stop.name,
         icon: {
           url: stopSvg,
-          scaledSize: new google.maps.Size(34, 42),
-          anchor: new google.maps.Point(17, 42),
+          scaledSize: new google.maps.Size(32, 40),
+          anchor: new google.maps.Point(16, 40),
         },
       });
 
@@ -212,11 +223,13 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
 
         if (infoWindowRef.current && mapInstanceRef.current) {
           infoWindowRef.current.setContent(`
-            <div style="color:#0f172a; font-family:sans-serif; padding:4px; max-width:220px;">
-              <strong style="font-size:13px; color:#0284c7;">${stop.code}: ${stop.name}</strong>
-              <p style="font-size:11px; margin:4px 0; color:#475569;">${stop.description}</p>
-              <div style="font-size:10px; font-weight:bold; color:#10b981;">
-                Average Wait: ~${stop.avgWaitMinutes} min • Waiting Crowd: ${stop.currentCrowdCount}
+            <div style="color:#0f172a; font-family:Inter, sans-serif; padding:6px; max-width:240px;">
+              <div style="font-size:11px; font-weight:bold; color:#2563eb; text-transform:uppercase; letter-spacing:0.5px;">${stop.code}</div>
+              <strong style="font-size:13px; color:#0f172a; display:block; margin:2px 0 4px 0;">${stop.name}</strong>
+              <p style="font-size:11px; margin:0 0 6px 0; color:#64748b; line-height:1.3;">${stop.description}</p>
+              <div style="display:flex; justify-content:space-between; font-size:11px; background:#f1f5f9; padding:4px 6px; border-radius:4px; font-weight:600;">
+                <span style="color:#16a34a;">Wait: ~${stop.avgWaitMinutes} min</span>
+                <span style="color:#2563eb;">Crowd: ${stop.currentCrowdCount} commuters</span>
               </div>
             </div>
           `);
@@ -235,16 +248,18 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
     shuttles.forEach(shuttle => {
       let marker = shuttleMarkersRef.current.get(shuttle.id);
       const route = SHUTTLE_ROUTES.find(r => r.id === shuttle.routeId);
-      const routeColor = route?.color || '#0284c7';
+      const routeColor = route?.color || '#2563eb';
+      const isSelected = selectedShuttleId === shuttle.id;
 
       const shuttleSvg = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 38 38">
-          <circle cx="19" cy="19" r="18" fill="#0f172a" stroke="${routeColor}" stroke-width="2.5"/>
-          <rect x="10" y="11" width="18" height="15" rx="3" fill="${routeColor}"/>
-          <rect x="12" y="13" width="5" height="5" rx="1" fill="#e0f2fe"/>
-          <rect x="21" y="13" width="5" height="5" rx="1" fill="#e0f2fe"/>
-          <circle cx="13" cy="27" r="2.5" fill="#e2e8f0"/>
-          <circle cx="25" cy="27" r="2.5" fill="#e2e8f0"/>
+        <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+          ${isSelected ? `<circle cx="22" cy="22" r="21" fill="none" stroke="${routeColor}" stroke-width="2.5" stroke-dasharray="4,2"/>` : ''}
+          <circle cx="22" cy="22" r="18" fill="#ffffff" stroke="${routeColor}" stroke-width="3"/>
+          <rect x="13" y="14" width="18" height="15" rx="3" fill="${routeColor}"/>
+          <rect x="15" y="16" width="5" height="5" rx="1" fill="#ffffff"/>
+          <rect x="24" y="16" width="5" height="5" rx="1" fill="#ffffff"/>
+          <circle cx="16" cy="30" r="2" fill="#0f172a"/>
+          <circle cx="28" cy="30" r="2" fill="#0f172a"/>
         </svg>
       `)}`;
 
@@ -255,8 +270,8 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
           title: shuttle.name,
           icon: {
             url: shuttleSvg,
-            scaledSize: new google.maps.Size(38, 38),
-            anchor: new google.maps.Point(19, 19),
+            scaledSize: new google.maps.Size(42, 42),
+            anchor: new google.maps.Point(21, 21),
           },
         });
 
@@ -266,14 +281,25 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
 
           if (infoWindowRef.current && mapInstanceRef.current) {
             infoWindowRef.current.setContent(`
-              <div style="color:#0f172a; font-family:sans-serif; padding:4px; max-width:220px;">
-                <strong style="font-size:13px; color:#0284c7;">${shuttle.name}</strong>
-                <div style="font-size:11px; margin:3px 0;">Route: ${route?.name || 'LPU Transit'}</div>
-                <div style="font-size:11px; font-weight:bold; color:${shuttle.status === 'On Time' ? '#10b981' : '#f59e0b'};">
-                  Status: ${shuttle.status} • Occupancy: ${shuttle.passengerCount}/${shuttle.capacity}
+              <div style="color:#0f172a; font-family:Inter, sans-serif; padding:6px; max-width:240px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <strong style="font-size:13px; color:#0f172a;">${shuttle.name}</strong>
+                  <span style="font-size:10px; font-weight:700; color:#ffffff; background:${routeColor}; padding:2px 6px; border-radius:4px;">${route?.code || 'BUS'}</span>
                 </div>
-                <div style="font-size:10px; color:#64748b; margin-top:2px;">
-                  Speed: ${shuttle.speedKmh} km/h • Battery: ${shuttle.batteryPercent}%
+                <div style="font-size:11px; color:#475569; margin-bottom:6px;">Driver: ${shuttle.driverName}</div>
+                <div style="display:flex; justify-content:space-between; font-size:11px; background:#f8fafc; border:1px solid #e2e8f0; padding:6px; border-radius:6px;">
+                  <div>
+                    <div style="font-size:9px; color:#64748b; text-transform:uppercase;">Status</div>
+                    <div style="font-weight:700; color:${shuttle.status === 'On Time' ? '#16a34a' : '#d97706'};">${shuttle.status}</div>
+                  </div>
+                  <div>
+                    <div style="font-size:9px; color:#64748b; text-transform:uppercase;">Occupancy</div>
+                    <div style="font-weight:700; color:#0f172a;">${shuttle.passengerCount}/${shuttle.capacity}</div>
+                  </div>
+                  <div>
+                    <div style="font-size:9px; color:#64748b; text-transform:uppercase;">Speed</div>
+                    <div style="font-weight:700; color:#0f172a;">${shuttle.speedKmh} km/h</div>
+                  </div>
                 </div>
               </div>
             `);
@@ -283,11 +309,10 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
 
         shuttleMarkersRef.current.set(shuttle.id, marker);
       } else {
-        // Smoothly pan position
         marker.setPosition({ lat: shuttle.lat, lng: shuttle.lng });
       }
     });
-  }, [shuttles, mapLoaded, onSelectShuttle, setSelectedShuttleId]);
+  }, [shuttles, mapLoaded, selectedShuttleId, onSelectShuttle, setSelectedShuttleId]);
 
   // Recenter map on LPU Campus
   const handleRecenter = () => {
@@ -320,7 +345,7 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
             icon: {
               path: google.maps.SymbolPath.CIRCLE,
               scale: 8,
-              fillColor: '#38bdf8',
+              fillColor: '#2563eb',
               fillOpacity: 1,
               strokeColor: '#ffffff',
               strokeWeight: 2,
@@ -330,91 +355,103 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
       },
       err => {
         setLocating(false);
-        alert('Could not determine your current position. Defaulting to LPU Main Campus.');
+        alert('Could not retrieve GPS location: ' + err.message);
       },
-      { enableHighAccuracy: true, timeout: 6000 }
+      { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
-  // If Google Maps API key is missing, render the high-detail interactive LPU SVG campus map with API key setup banner
+  // Fullscreen toggle
+  const toggleFullscreen = () => {
+    if (!mapWrapperRef.current) return;
+    if (!document.fullscreenElement) {
+      mapWrapperRef.current.requestFullscreen().catch(err => {
+        console.warn('Fullscreen error:', err);
+      });
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  // If Google Maps API key is missing, show the clean vector campus map with setup helper
   if (apiKeyMissing) {
     return (
-      <div className="space-y-3">
-        {/* API Key Setup Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-sky-950/60 via-slate-900 to-indigo-950/60 border border-sky-500/30 text-xs">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-sky-500/20 text-sky-400 shrink-0">
-              <Key className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="font-bold text-white block">
-                Google Maps Platform Ready • LPU Phagwara Punjab
-              </span>
-              <span className="text-slate-400 text-[11px]">
-                Showing high-detail interactive vector map. Add <code className="text-sky-300">VITE_GOOGLE_MAPS_API_KEY</code> in <code className="text-slate-300">.env</code> to activate live Google Satellite & Street Maps.
-              </span>
-            </div>
-          </div>
+      <div className="relative">
+        <FallbackSVGMap
+          onSelectShuttle={onSelectShuttle}
+          onSelectStop={onSelectStop}
+          heightClass={heightClass}
+        />
+
+        {/* API Key Banner Pill */}
+        <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-lg border border-slate-200 shadow-sm text-xs text-slate-700">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>LPU Geographic Coordinates Active</span>
           <button
             onClick={() => setShowConfigModal(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs shrink-0 transition-colors shadow-md"
+            className="ml-2 font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 underline"
           >
-            Google Maps Setup Guide
+            <Key className="w-3.5 h-3.5" /> Google Maps API Key
           </button>
         </div>
 
-        {/* Fallback Vector Map */}
-        <FallbackSVGMap
-          heightClass={heightClass}
-          onSelectShuttle={onSelectShuttle}
-          onSelectStop={onSelectStop}
-        />
-
-        {/* Configuration Guide Modal */}
+        {/* Setup Modal */}
         {showConfigModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <div className="relative w-full max-w-lg bg-slate-900 rounded-3xl p-6 md:p-8 border border-sky-500/30 shadow-2xl space-y-5 text-slate-100 text-xs">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center gap-2 font-black text-sm text-white">
-                  <Key className="w-4 h-4 text-sky-400" />
-                  Configuring Google Maps for ShuttleSync
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-lg w-full p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <Key className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-slate-900">Google Maps Platform Setup</h4>
+                    <p className="text-xs text-slate-500">Configure Maps JavaScript API for Lovely Professional University</p>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowConfigModal(false)}
-                  className="text-slate-400 hover:text-white"
+                  className="text-slate-400 hover:text-slate-600 text-sm font-bold"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="space-y-3 text-slate-300 leading-relaxed">
+              <div className="text-xs text-slate-600 space-y-2.5 leading-relaxed">
                 <p>
-                  To render the live satellite and road views of Lovely Professional University (LPU), enable the following APIs in your Google Cloud Console:
+                  ShuttleSync features real geographic coordinates for LPU campus landmarks:
                 </p>
-                <ol className="list-decimal pl-5 space-y-1.5 text-slate-300 font-medium">
-                  <li><strong>Maps JavaScript API</strong> (Loads interactive campus tiles)</li>
-                  <li><strong>Places API (New)</strong> (Enables landmark searching & geocoding)</li>
-                  <li><strong>Routes API</strong> (Calculates turn-by-turn road waypoints)</li>
-                </ol>
-
-                <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 font-mono text-[11px] text-sky-300">
-                  VITE_GOOGLE_MAPS_API_KEY=AIzaSy...<br />
-                  VITE_SUPABASE_URL=https://your-project.supabase.co<br />
-                  VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-[11px] text-slate-700 space-y-1">
+                  <div>• Center: 31.2530° N, 75.7037° E (LPU Campus)</div>
+                  <div>• Main Gate 1 (NH-44): 31.2558° N, 75.6968° E</div>
+                  <div>• Block 32-34 Central Library: 31.2542° N, 75.7018° E</div>
+                  <div>• Uni-Mall Student Square: 31.2522° N, 75.7042° E</div>
                 </div>
-
-                <p className="text-[11px] text-slate-400">
-                  Best Practice: In Google Cloud Console, restrict your API key to "HTTP referrers" targeting your deployment domains (<code className="text-sky-300">https://manas0306-ops.github.io/*</code> and <code className="text-sky-300">http://localhost:*</code>).
+                <p>
+                  To load the live Google Maps vector tiles, set the following in your environment:
                 </p>
+                <div className="bg-slate-900 text-emerald-400 p-2.5 rounded-lg font-mono text-xs">
+                  VITE_GOOGLE_MAPS_API_KEY=your_key_here
+                </div>
               </div>
 
-              <div className="pt-2 flex justify-end">
+              <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   onClick={() => setShowConfigModal(false)}
-                  className="px-4 py-2 rounded-xl bg-sky-500 text-slate-950 font-bold text-xs"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
                 >
-                  Got It
+                  Close
                 </button>
+                <a
+                  href="https://console.cloud.google.com/google/maps-apis/credentials"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1.5"
+                >
+                  Get Google Maps Key <ExternalLink className="w-3.5 h-3.5" />
+                </a>
               </div>
             </div>
           </div>
@@ -423,80 +460,82 @@ export const GoogleCampusMap: React.FC<GoogleCampusMapProps> = ({
     );
   }
 
-  // Active Google Maps View
   return (
-    <div className={`relative w-full ${heightClass} bg-[#070d1e] rounded-2xl overflow-hidden border border-sky-500/20 shadow-2xl select-none`}>
-      {/* Top Map Status Bar & Route Filter */}
-      <div className="absolute top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        {/* Route Filters */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/80 shadow-lg pointer-events-auto">
+    <div
+      ref={mapWrapperRef}
+      className={`relative w-full ${heightClass} bg-slate-100 rounded-xl overflow-hidden border border-slate-200 shadow-sm select-none`}
+    >
+      {/* Top Map Toolbar: Route Filter Pills */}
+      <div className="absolute top-3 left-3 z-20 flex flex-wrap items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-lg border border-slate-200 shadow-sm pointer-events-auto">
+        <button
+          onClick={() => setActiveRouteFilter('all')}
+          className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+            activeRouteFilter === 'all'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+        >
+          All Routes
+        </button>
+        {SHUTTLE_ROUTES.map(route => (
           <button
-            onClick={() => setActiveRouteFilter('all')}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-              activeRouteFilter === 'all'
-                ? 'bg-sky-500 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
+            key={route.id}
+            onClick={() => setActiveRouteFilter(route.id)}
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
+              activeRouteFilter === route.id
+                ? 'text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
+            style={{
+              backgroundColor: activeRouteFilter === route.id ? route.color : 'transparent',
+            }}
           >
-            All LPU Routes
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: route.color }}
+            />
+            {route.code}
           </button>
-          {SHUTTLE_ROUTES.map(route => (
-            <button
-              key={route.id}
-              onClick={() => setActiveRouteFilter(route.id)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
-                activeRouteFilter === route.id
-                  ? 'text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              style={{
-                backgroundColor: activeRouteFilter === route.id ? route.color : 'transparent',
-              }}
-            >
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: route.color }} />
-              {route.code}
-            </button>
-          ))}
-        </div>
-
-        {/* Live GPS Telemetry Status Pill */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/80 pointer-events-auto text-xs shadow-lg">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-          </span>
-          <span className="text-white font-bold">LPU CAMPUS RADAR</span>
-          <span className="text-slate-500">|</span>
-          <span className="text-sky-400 font-semibold">{shuttles.length} Active EV Shuttles</span>
-        </div>
+        ))}
       </div>
 
-      {/* Floating Action Controls (Bottom Right) */}
+      {/* Top Right Live Telemetry Badge */}
+      <div className="absolute top-3 right-3 z-20 flex items-center gap-2 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm text-xs font-medium text-slate-700">
+        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+        <span className="font-semibold text-slate-900">{shuttles.length} Active Shuttles</span>
+        <span className="text-slate-300">|</span>
+        <span className="text-slate-500">LPU Campus Geofence</span>
+      </div>
+
+      {/* Floating Map Action Controls (Bottom Right) */}
       <div className="absolute bottom-4 right-4 z-20 flex flex-col gap-1.5 pointer-events-auto">
         <button
           onClick={handleRecenter}
-          className="p-2.5 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 shadow-xl transition-all"
+          className="p-2.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-blue-600 hover:bg-slate-50 shadow-sm transition-all"
           title="Recenter on LPU Campus"
         >
-          <RotateCcw className="w-4 h-4 text-sky-400" />
+          <RotateCcw className="w-4 h-4" />
         </button>
+
         <button
           onClick={handleLocateMe}
           disabled={locating}
-          className="p-2.5 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 shadow-xl transition-all"
-          title="Locate Current Position"
+          className="p-2.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-blue-600 hover:bg-slate-50 shadow-sm transition-all disabled:opacity-50"
+          title="Locate My Position"
         >
-          <Crosshair className={`w-4 h-4 ${locating ? 'animate-spin text-sky-400' : 'text-emerald-400'}`} />
+          <Crosshair className={`w-4 h-4 ${locating ? 'animate-spin text-blue-600' : ''}`} />
+        </button>
+
+        <button
+          onClick={toggleFullscreen}
+          className="p-2.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-blue-600 hover:bg-slate-50 shadow-sm transition-all"
+          title="Toggle Fullscreen"
+        >
+          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
         </button>
       </div>
 
-      {/* Campus Target Watermark (Bottom Left) */}
-      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/85 backdrop-blur-md border border-slate-700/70 text-[11px] text-slate-400 pointer-events-auto">
-        <MapPin className="w-3.5 h-3.5 text-sky-400" />
-        <span>Lovely Professional University, Phagwara</span>
-      </div>
-
-      {/* Google Maps Canvas */}
+      {/* Google Maps Container */}
       <div ref={mapContainerRef} className="w-full h-full" />
     </div>
   );

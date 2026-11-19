@@ -1,180 +1,125 @@
 # 🚌 ShuttleSync 2.0 — Know Before You Go
-### Smart Campus Mobility, Real-Time LPU Mapping & Persistent Student Transport Platform
+### Enterprise Fleet Management & Smart Campus Mobility Platform
+**Lovely Professional University (LPU), Phagwara, Punjab, India**  
+**INT335 Design Thinking Assignment (Project P05: Waiting for the Shuttle)**
 
 [![Deploy ShuttleSync to GitHub Pages](https://github.com/manas0306-ops/shuttlesync-smart-campus/actions/workflows/deploy.yml/badge.svg)](https://github.com/manas0306-ops/shuttlesync-smart-campus/actions/workflows/deploy.yml)
-[![Live Application](https://img.shields.io/badge/Live%20App-GitHub%20Pages-38bdf8?style=flat&logo=github)](https://manas0306-ops.github.io/shuttlesync-smart-campus/)
+[![Live Application](https://img.shields.io/badge/Live%20App-GitHub%20Pages-2563eb?style=flat&logo=github)](https://manas0306-ops.github.io/shuttlesync-smart-campus/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 > **Live Production URL:** [https://manas0306-ops.github.io/shuttlesync-smart-campus/](https://manas0306-ops.github.io/shuttlesync-smart-campus/)  
 > **GitHub Repository:** [https://github.com/manas0306-ops/shuttlesync-smart-campus](https://github.com/manas0306-ops/shuttlesync-smart-campus)  
 > **Course / Project:** INT335 Design Thinking — Project P05 (Waiting for the Shuttle)  
 > **Institution:** Lovely Professional University (LPU), Phagwara, Punjab, India  
-> **Lead Developer & Designer:** Maanas Pandey ([@manas0306-ops](https://github.com/manas0306-ops) / krishnamanas1224@gmail.com)
+> **Lead Full-Stack Developer & Product Architect:** Maanas Pandey ([@manas0306-ops](https://github.com/manas0306-ops) / krishnamanas1224@gmail.com)
 
 ---
 
-## 🌟 Executive Summary
+## 🌟 Overview & Enterprise Design Philosophy
 
-**ShuttleSync 2.0** transforms campus mobility at Lovely Professional University (LPU) into a transparent, predictable, and student-centered experience. Conceived during the INT335 Design Thinking course, ShuttleSync tackles the critical pain points of intra-campus commuting: erratic waiting times, shuttle bunching, sudden overcrowding at academic peak hours, and safety concerns during late-evening hostel transit.
+**ShuttleSync 2.0** has been redesigned as a **genuine enterprise SaaS fleet management and campus transportation control system**, transforming university transit at Lovely Professional University (LPU) from an unorganized daily friction point into a predictable, transparent, and student-centered experience.
 
-Upgraded to **Version 2.0**, ShuttleSync introduces:
-1. **Real LPU Geographical Google Maps Platform Integration** centered on `31.2530° N, 75.7037° E` with custom dark-mode mobility styling, high-accuracy road polylines, and interactive stop landmarks.
-2. **Persistent Student Authentication Architecture (Supabase Auth)** with university email verification, single-password credential security, session persistence across browser restarts, and offline storage failover.
-3. **Personalized Student Transit Hub** featuring real-time arrival countdowns, favorite saved commute corridors, and carbon-savings analytics.
-4. **Dual-Mode Driver Telemetry Console** allowing drivers to broadcast live device GPS via the browser Geolocation API (Mode B) alongside physics-modeled synthetic campus simulation (Mode A).
+### 🎨 Enterprise UI/UX Design System
+- **Clean white / light-slate workspace (`#f8fafc` / `#ffffff`)** with structured borders (`#e2e8f0`) and subtle shadows.
+- **Fixed, collapsible dark navy navigation sidebar (`#0f172a`)** with quick workspace role switching (Student, Driver, Admin).
+- **Multi-panel fleet monitoring dashboard** with top operational KPI metrics, left-side vehicle telemetry panel, large central Google Maps view, and bottom operational logs.
+- **Real geographical Google Maps Platform integration** centered on Lovely Professional University (`31.2530° N, 75.7037° E`) with custom light silver mobility styling, live route polylines, and interactive markers.
+- **Subtle desktop animated shuttle cursor** with standard pointer and touch fallback for mobile devices.
+
+---
+
+## 🏛️ Application Architecture & Navigation Modules
+
+The platform is organized into 10 dedicated enterprise transit modules:
+
+| Module | Route / Tab | Description |
+|---|---|---|
+| **Overview** | `#overview` | Executive fleet overview with KPI metric cards, active telemetry panel, central map, and live activity feed. |
+| **Live Map** | `#live-map` | Fullscreen-capable Google Maps fleet radar with LPU campus geofence, vehicle selector, and route filters. |
+| **Route Management** | `#routes` | Corridor manager for R-101 (Blue), R-202 (Green), R-303 (Purple) with stop progressions, headways, and schedules. |
+| **Shuttle Fleet** | `#fleet` | Structured fleet table with Vehicle ID, model, driver, current location, occupancy progress bars, status, and ETA. |
+| **Drivers** | `#drivers` | Driver roster with code (`DRV-801` to `DRV-805`), shift hours, rating, duty status, and privacy-masked emergency contact. |
+| **Student Hub** | `#students` | Personalized commuter hub (next shuttle countdown, saved routes, carbon savings) + Admin Student Directory. |
+| **Passenger Occupancy** | `#occupancy` | Visual occupancy indicators (`32 / 50 Pax`), free seats counter, crowd levels, and hourly distribution chart. |
+| **Notifications** | `#notifications` | Real-time transit alerts, delay warnings, crowd spikes, and university dispatch broadcast composer. |
+| **Analytics** | `#analytics` | Historical wait curves, fleet load factors, bottleneck choke points, and carbon offset metrics. |
+| **Settings** | `#settings` | Simulation engine parameters (speed multiplier, traffic congestion, weather friction) + Mode B Real Device GPS broadcast. |
+| **Design Thinking** | `#design-thinking` | INT335 Design Thinking academic dossier covering all 7 stages (Empathy, Observation, Define, Ideate, Prototype, Test, Defense). |
 
 ---
 
 ## 🗺️ Real LPU Campus Landmark Coverage
 
-ShuttleSync coordinates correspond directly to real Lovely Professional University infrastructure:
-- **Main Gate 1 (NH-44 / GT Road)** — `(31.2558, 75.7042)`: Primary gateway connecting external buses, auto stands, and highway transit.
-- **Block 32–34 (Central Library & Student Center)** — `(31.2536, 75.7028)`: High-traffic academic hub with heavy morning and evening demand.
-- **Uni-Mall & Food Square** — `(31.2520, 75.7050)`: Social and dining core with peak lunch and dinner traffic.
-- **Block 36–38 (Engineering & Technology Quad)** — `(31.2512, 75.7015)`: Tech campus zone with frequent lab switchovers.
-- **Boys Hostel Complex (BH 1–7)** — `(31.2575, 75.6990)`: High-density residential zone on the north perimeter.
-- **Girls Hostel Complex (GH 1–6)** — `(31.2490, 75.7065)`: Residential quad with prioritized evening safety and lighting.
-- **LPU Sports Stadium & Gymnasium** — `(31.2550, 75.7075)`: Major campus event and athletics center.
-- **Uni-Hospital & Gate 2** — `(31.2475, 75.7030)`: 24/7 medical and emergency campus entrance.
+All stop coordinates and route polylines directly correspond to real Lovely Professional University infrastructure:
+- **Main Gate 1 (NH-44 / GT Road)** — `(31.2558, 75.6968)`: Primary highway gate with auto stand and bus interchange.
+- **Block 32–34 (Central Library & CS Block)** — `(31.2542, 75.7018)`: Academic core with high morning rush.
+- **Uni-Mall & Food Square** — `(31.2522, 75.7042)`: Central social square, food courts, and ATMs.
+- **Block 36–38 (Engineering & Robotics Quad)** — `(31.2552, 75.7058)`: Workshop and technology complex.
+- **Boys Hostel Complex (BH 1–7)** — `(31.2505, 75.6998)`: High-density residential zone on northern perimeter.
+- **Girls Hostel Complex (GH 1–6)** — `(31.2492, 75.7062)`: Residential quad with prioritized evening transit safety.
+- **LPU Sports Stadium & Gymnasium** — `(31.2550, 75.7075)`: Athletics arena and university grounds.
+- **Uni-Hospital & Gate 2** — `(31.2475, 75.7030)`: 24/7 medical facility and southern entrance.
+
+### 🚏 Active Campus Corridors
+- **Route R-101 (Campus Express Loop - Blue `#2563eb`):** NH-44 Gate 1 ↔ Block 32–34 ↔ Uni-Mall ↔ BH 1–7. Headway: 8 mins.
+- **Route R-202 (Academic Ring Line - Green `#16a34a`):** Block 32–34 ↔ Uni-Mall ↔ Block 36–38 ↔ Uni-Hospital. Headway: 10 mins.
+- **Route R-303 (Hostel Connector - Purple `#9333ea`):** BH 1–7 Hostels ↔ Uni-Mall ↔ GH 1–6 Hostels. Headway: 6 mins.
 
 ---
 
-## 🚀 Key Modules & Capabilities
+## 🔐 Authentication & Security
 
-### 1. 🔐 Persistent Student Authentication
-- **Registration with Student ID & Strength Meter:** Validates university email format (`@lpu.in` or personal email), Student Registration ID (e.g., `12214589`), password entropy meter, and match validation.
-- **Dual Identifier Login:** Students can authenticate using either their University Email OR Student ID alongside their secure password.
-- **Single-Password Credential Security:** Every student identity has exactly one current password. Changing passwords inside the Profile Modal immediately updates the single credential.
-- **Persistent Session State:** Uses Supabase Auth session tokens combined with offline fallback storage (`shuttlesync_active_session`), ensuring users remain signed in across browser restarts when "Remember Me" is selected.
-- **Route Guard:** Authenticated features (Student Hub, Saved Routes) redirect unauthenticated visitors to login seamlessly.
-
-### 2. 🗺️ Google Maps Campus Tracking & Fallback Engine
-- Loaded via `@googlemaps/js-api-loader` with asynchronous `importLibrary('maps')`.
-- Styled with high-contrast `#070d1e` dark mobility theme highlighting roads in `#1e293b` and university landmarks in `#38bdf8`.
-- Interactive stop markers with real-time crowd metrics and shuttle cards with occupancy badges.
-- **Zero-Crash Graceful Fallback:** If a user runs the project without a Google Maps API key, the system automatically surfaces the interactive high-detail vector campus map and offers a one-click API key configuration modal.
-
-### 3. ⏱️ Smart Arrival & Crowd Prediction
-- Real-time ETA forecasting computing speed, weather friction, traffic congestion, and distance.
-- Dynamic 4-tier crowd classification: Low (0–40%), Moderate (41–70%), High (71–90%), Full (91–100%).
-- Smart Stop Recommendation Engine calculating composite scores based on walking time, wait time, and crowd congestion to recommend the optimal pickup point.
-
-### 4. 🧭 Multi-Modal Journey Planner
-- Select starting point and destination among LPU campus stops.
-- Automatic routing across Route 1 (Campus Express Loop), Route 2 (Academic Ring Line), and Route 3 (Hostel Connector).
-- Step-by-step breakdown with walking distance, shuttle segment duration, transfer points, and estimated carbon offset (g CO₂ saved vs petrol auto-rickshaw).
-
-### 5. 🧑‍✈️ Driver Cockpit & Real GPS Broadcast
-- **Mode A (Simulation):** Physics simulation updating shuttle position, speed, and passenger count along route waypoints.
-- **Mode B (Real GPS):** One-click toggle activating `navigator.geolocation.watchPosition` to broadcast the actual physical smartphone or laptop GPS coordinates to the campus fleet.
-- One-touch stop arrival progression and instant passenger count +/- controls.
-
-### 6. 📊 Admin Fleet Telemetry & Simulation Controls
-- Real-time fleet health monitor: On Time, Delayed, Approaching, Maintenance.
-- Global traffic density slider (Low, Moderate, Heavy, Congested).
-- Weather condition toggle (Clear, Rainy, Foggy, Peak Sun).
-- Fleet-wide occupancy heatmaps and historical waiting time distributions.
-
-### 7. 🎓 Design Thinking Dossier (INT335)
-Interactive 6-phase Design Thinking journey modal built into the header:
-- **Phase 1: Empathize** — 142 student commute surveys, 4 empathy maps (first-year student, day scholar, hostel resident, campus security).
-- **Phase 2: Define** — Problem statements, "How Might We" frameworks, student journey friction points.
-- **Phase 3: Ideate** — 25 brainstormed mobility solutions, Eisenhower matrix prioritization, SCAMPER methodology.
-- **Phase 4: Prototype** — Low-fidelity wireframes to interactive high-fidelity digital twin.
-- **Phase 5: Test** — User feedback metrics, SUS (System Usability Scale) target of 88.5, iteration logs.
-- **Phase 6: Implementation** — Architecture, Supabase schema, deployment CI/CD pipeline.
+- **Dual-Mode Backend:** Seamlessly integrates with live Supabase GoTrue Auth when environment variables are supplied, with automatic failover to an offline persistent database (`shuttlesync_registered_users_db` & `shuttlesync_active_session`).
+- **Single-Password Credential Security:** One account = one registered identity = one current password credential. Changing passwords in the Profile Modal immediately updates the active credential.
+- **Persistent Sessions:** Stored in browser storage with automatic session restore on page refresh and browser restart.
+- **Demo Quick-Fill:** One-tap demo authentication using `12214589` / `student@lpu.in` with password `Student@123`.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 📡 Dual-Mode Telemetry & Driver GPS
+
+- **Mode A (Campus Physics Simulation):** Automated realistic movement along route waypoints with configurable traffic density and weather friction.
+- **Mode B (Live Device GPS Broadcast):** Drivers can toggle Mode B in Settings or Driver Portal, activating `navigator.geolocation.watchPosition` to broadcast their physical smartphone GPS coordinates directly to the campus fleet radar.
+
+---
+
+## 🛠️ Technology Stack
 
 | Layer | Technologies |
 |---|---|
 | **Frontend Framework** | React 19, TypeScript 5.7, Vite 6 |
-| **Styling & UI** | Tailwind CSS v4, Lucide React icons, Glassmorphism CSS |
-| **Mapping Engine** | Google Maps Platform JavaScript API (`@googlemaps/js-api-loader`), Custom SVG Canvas Fallback |
-| **Backend & Auth** | Supabase (PostgreSQL, GoTrue Auth, Row Level Security, Realtime Publications) |
-| **Persistence** | Supabase Session Storage + Persistent Local Storage Fallback Engine |
-| **Animations & FX** | CSS Keyframes, Dynamic cursor follower, Canvas Confetti |
-| **CI / CD & Hosting** | GitHub Actions, GitHub Pages |
+| **Styling & Theme** | Tailwind CSS v4, Lucide React Icons, Enterprise Light Silver Theme |
+| **Mapping Engine** | Google Maps Platform JavaScript API (`@googlemaps/js-api-loader`), Interactive Vector Fallback |
+| **Backend & Database** | Supabase (PostgreSQL, GoTrue Auth, Row Level Security) |
+| **CI / CD Pipeline** | GitHub Actions (`.github/workflows/deploy.yml`), GitHub Pages |
 
 ---
 
-## 🗄️ Database Architecture (Supabase)
+## 🚀 Local Development Setup
 
-The complete SQL schema is located in [`supabase/schema.sql`](supabase/schema.sql). It contains 10 normalized tables with full Row Level Security (RLS) policies:
-1. `profiles` — Student details, registration IDs, university email, role (`student`, `driver`, `admin`).
-2. `shuttles` — Vehicle IDs, license plates, models, capacity, status, driver assignments.
-3. `routes` — Route name, code, color, polyline coordinates, operational hours.
-4. `stops` — Physical stop coordinates, landmarks, shelters, lighting ratings.
-5. `route_stops` — Ordered sequence and arrival offsets between routes and stops.
-6. `shuttle_locations` — Real-time telemetry log (`latitude`, `longitude`, `speed`, `heading`, `passenger_count`, `is_real_gps`).
-7. `saved_routes` — Student favorite routes with custom labels and notification preferences.
-8. `ride_history` — Student commute logs with boarding/alighting stops and carbon offset.
-9. `notifications` — Dynamic student alerts (delay warnings, shuttle full alerts, arrival pings).
-10. `system_settings` — Global campus traffic parameters, weather simulation, and operational hours.
-
----
-
-## ⚙️ Local Setup & Development
-
-### 1. Clone Repository
 ```bash
+# 1. Clone repository
 git clone https://github.com/manas0306-ops/shuttlesync-smart-campus.git
 cd shuttlesync-smart-campus
-```
 
-### 2. Install Dependencies
-```bash
+# 2. Install dependencies
 npm install --legacy-peer-deps
-```
 
-### 3. Configure Environment Variables (Optional)
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Populate your credentials:
-```env
-# Google Maps API Key with Maps JavaScript API enabled
-VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
-
-# Supabase Project Configuration
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
-```
-> *Note:* If environment variables are omitted, ShuttleSync automatically activates its offline demonstration engines (built-in interactive vector campus map and persistent local auth storage), providing an immediate out-of-the-box working experience.
-
-### 4. Run Development Server
-```bash
+# 3. Start local development server
 npm run dev
-```
-Open `http://localhost:5173/` in your browser.
 
-### 5. Build for Production
-```bash
+# 4. Production build & typecheck
 npm run build
 ```
-
----
-
-## 🚢 Continuous Deployment (GitHub Actions)
-
-Every push to the `main` branch automatically triggers the `.github/workflows/deploy.yml` pipeline:
-1. Checks out repository.
-2. Sets up Node.js 20 environment with npm cache.
-3. Installs dependencies (`npm ci --legacy-peer-deps`).
-4. Executes TypeScript compiler checks and Vite production build (`npm run build`).
-5. Injects `404.html` fallback for single-page application routing on GitHub Pages.
-6. Deploys optimized static bundle to GitHub Pages.
 
 ---
 
 ## 👤 Author & Contribution
 
 Developed with ❤️ by **Maanas Pandey**  
-- **GitHub:** [@manas0306-ops](https://github.com/manas0306-ops)  
+- **GitHub Profile:** [@manas0306-ops](https://github.com/manas0306-ops)  
 - **Email:** [krishnamanas1224@gmail.com](mailto:krishnamanas1224@gmail.com)  
+- **Registration ID:** 12214589  
 - **Assignment:** INT335 Design Thinking (Project P05 — Waiting for the Shuttle)  
 - **Institution:** Lovely Professional University, Punjab, India  
 

@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #0a1128;
+    --bg-card: rgba(15, 23, 42, 0.75);
+    --border-card: rgba(56, 189, 248, 0.15);
+  }
+
+  body {
+    background-color: #0b132b;
+    color: #e2e8f0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+/* Custom Shuttle Cart Cursor on Desktop */
+@media (hover: hover) and (pointer: fine) {
+  .shuttle-cursor-zone {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><g transform='rotate(-10 18 18)'><rect x='4' y='8' width='26' height='16' rx='4' fill='%230284c7' stroke='%2338bdf8' stroke-width='2'/><rect x='8' y='11' width='7' height='6' rx='1' fill='%23e0f2fe'/><rect x='18' y='11' width='8' height='6' rx='1' fill='%23e0f2fe'/><circle cx='10' cy='24' r='3.5' fill='%231e293b' stroke='%2338bdf8' stroke-width='1.5'/><circle cx='24' cy='24' r='3.5' fill='%231e293b' stroke='%2338bdf8' stroke-width='1.5'/><circle cx='28' cy='16' r='1.5' fill='%23fef08a'/><path d='M2 14 Q-1 16 2 18' stroke='%2338bdf8' stroke-width='1.5' stroke-linecap='round' fill='none'/></g></svg>") 18 18, auto !important;
+  }
+
+  .shuttle-cursor-zone button,
+  .shuttle-cursor-zone a,
+  .shuttle-cursor-zone input,
+  .shuttle-cursor-zone select,
+  .shuttle-cursor-zone [role="button"] {
+    cursor: pointer !important;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.6);
+}
+
+/* Pulse animation for active stop */
+@keyframes map-pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 14px rgba(56, 189, 248, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+}
+
+.pulse-marker {
+  animation: map-pulse 2s infinite ease-in-out;
+}

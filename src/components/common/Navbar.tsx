@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { useSimulation } from '../../context/SimulationContext';
 import { UserRole } from '../../types';
 import {
@@ -17,16 +18,27 @@ import {
   Menu,
   X,
   BookOpen,
+  LayoutDashboard,
+  User,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: string;
   onSelectTab: (tab: string) => void;
+  onOpenAuth: (mode: 'login' | 'register') => void;
+  onOpenProfile: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  activeTab,
+  onSelectTab,
+  onOpenAuth,
+  onOpenProfile,
+}) => {
+  const { user, isAuthenticated, signOut } = useAuth();
   const {
-    shuttles,
     userRole,
     setUserRole,
     notifications,
@@ -39,6 +51,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const navLinks = [
+    ...(isAuthenticated ? [{ id: 'dashboard', label: 'Student Hub', icon: LayoutDashboard }] : []),
     { id: 'overview', label: 'Overview', icon: BookOpen },
     { id: 'tracking', label: 'Live Radar', icon: Compass },
     { id: 'prediction', label: 'ETA Forecast', icon: Zap },
@@ -59,9 +72,18 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
     setUserRole(role);
     if (role === 'driver') onSelectTab('driver');
     else if (role === 'admin') onSelectTab('admin');
-    else onSelectTab('tracking');
+    else onSelectTab(isAuthenticated ? 'dashboard' : 'tracking');
     setMobileMenuOpen(false);
   };
+
+  const studentInitials = user?.fullName
+    ? user.fullName
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : 'LPU';
 
   return (
     <nav className="sticky top-0 z-40 bg-[#070d1e]/90 backdrop-blur-xl border-b border-sky-500/15 select-none">
@@ -69,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
           <div
-            onClick={() => handleNavClick('overview')}
+            onClick={() => handleNavClick(isAuthenticated ? 'dashboard' : 'overview')}
             className="flex items-center gap-3 cursor-pointer group"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-teal-400 p-0.5 shadow-lg shadow-sky-500/20 group-hover:scale-105 transition-transform">
@@ -81,11 +103,11 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
               <div className="flex items-center gap-1.5">
                 <span className="text-lg font-black text-white tracking-tight">ShuttleSync</span>
                 <span className="text-[10px] font-bold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-1.5 py-0.2 rounded">
-                  P05
+                  2.0
                 </span>
               </div>
               <span className="text-[10px] text-slate-400 block font-medium -mt-0.5">
-                Know Before You Go
+                Know Before You Go • LPU
               </span>
             </div>
           </div>
@@ -118,8 +140,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
             })}
           </div>
 
-          {/* Right Controls: Role Switcher, Sound & Notifications */}
-          <div className="hidden md:flex items-center gap-2">
+          {/* Right Controls: Role Switcher, Sound & Profile */}
+          <div className="hidden md:flex items-center gap-2.5">
             {/* Role Switcher Pill */}
             <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-700/80 text-xs font-semibold">
               <button
@@ -162,12 +184,12 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
                   ? 'bg-slate-800 border-slate-700 text-sky-400 hover:bg-slate-700'
                   : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-400'
               }`}
-              title={soundEnabled ? 'Mute Synthetic Audio Chimes' : 'Enable Audio Chimes'}
+              title={soundEnabled ? 'Mute Audio Chimes' : 'Enable Audio Chimes'}
             >
               {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
 
-            {/* Alerts Quick Bell */}
+            {/* Notifications Bell */}
             <button
               onClick={() => handleNavClick('notifications')}
               className="relative p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all"
@@ -180,9 +202,40 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
                 </span>
               )}
             </button>
+
+            {/* Authentication Buttons / Profile Capsule */}
+            {isAuthenticated && user ? (
+              <button
+                onClick={onOpenProfile}
+                className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-white transition-all active:scale-95"
+                title="View Student Profile"
+              >
+                <div className="w-6 h-6 rounded-lg bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">
+                  {studentInitials}
+                </div>
+                <div className="text-left text-xs">
+                  <span className="font-bold block truncate max-w-[90px]">{user.fullName.split(' ')[0]}</span>
+                </div>
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenAuth('login')}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs border border-slate-700 transition-colors"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => onOpenAuth('register')}
+                  className="px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs shadow-md shadow-sky-500/25 transition-all active:scale-95"
+                >
+                  Register
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Mobile Menu Hamburger */}
+          {/* Mobile Hamburger */}
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(prev => !prev)}
@@ -197,6 +250,48 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-slate-950/95 border-b border-slate-800 px-4 pt-3 pb-6 space-y-3">
+          {/* User Status / Login Buttons */}
+          {isAuthenticated && user ? (
+            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-sky-500 text-slate-950 font-black flex items-center justify-center">
+                  {studentInitials}
+                </div>
+                <div>
+                  <div className="font-bold text-white">{user.fullName}</div>
+                  <div className="text-[10px] text-slate-400">ID: {user.studentId}</div>
+                </div>
+              </div>
+              <button
+                onClick={onOpenProfile}
+                className="px-2.5 py-1 rounded-lg bg-slate-800 text-sky-400 font-bold"
+              >
+                Profile
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  onOpenAuth('login');
+                  setMobileMenuOpen(false);
+                }}
+                className="py-2.5 rounded-xl bg-slate-800 text-slate-200 font-bold text-xs border border-slate-700"
+              >
+                Student Log In
+              </button>
+              <button
+                onClick={() => {
+                  onOpenAuth('register');
+                  setMobileMenuOpen(false);
+                }}
+                className="py-2.5 rounded-xl bg-sky-500 text-slate-950 font-black text-xs"
+              >
+                Register
+              </button>
+            </div>
+          )}
+
           {/* Role selector for mobile */}
           <div className="flex items-center justify-between p-2 rounded-xl bg-slate-900 border border-slate-800 text-xs">
             <span className="text-slate-400 font-medium">Role:</span>

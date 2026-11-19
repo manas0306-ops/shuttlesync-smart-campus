@@ -33,6 +33,8 @@ interface SimulationContextType {
   updatePassengerCount: (shuttleId: string, deltaOrValue: number, isAbsolute?: boolean) => void;
   updateShuttleDelay: (shuttleId: string, delayMins: number) => void;
   markStopReached: (shuttleId: string) => void;
+  broadcastDriverGPS: (shuttleId: string, lat: number, lng: number, speed?: number, heading?: number) => void;
+  toggleDriverGPS: (active: boolean) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   triggerNotification: (notif: Omit<SystemNotification, 'id' | 'timestamp' | 'read'>) => void;
@@ -45,28 +47,28 @@ const INITIAL_NOTIFICATIONS: SystemNotification[] = [
   {
     id: 'notif-1',
     title: 'Shuttle S-201 Approaching',
-    message: 'CampusMaxi is 45 seconds away from South Gate Market Stop.',
+    message: 'LPU CampusMaxi is 45 seconds away from Uni-Hospital Stop.',
     timestamp: 'Just now',
     category: 'approaching',
     severity: 'info',
     read: false,
     shuttleId: 'shuttle-s201',
-    stopId: 'stop-south-gate',
+    stopId: 'stop-uni-hospital',
   },
   {
     id: 'notif-2',
     title: 'High Crowd Density Alert',
-    message: 'Hostel Clusters A-D stop has 64 waiting students. Expect full shuttles.',
+    message: 'Boys Hostel Residential Zone (BH 1-7) has 65 waiting students. High boarding demand.',
     timestamp: '4 mins ago',
     category: 'crowd',
     severity: 'warning',
     read: false,
-    stopId: 'stop-hostel-zone',
+    stopId: 'stop-bh-hostel',
   },
   {
     id: 'notif-3',
-    title: 'Monsoon Advisory',
-    message: 'Light showers reported. Shuttle speeds reduced by 15% for passenger safety.',
+    title: 'Monsoon Transit Advisory',
+    message: 'Rain showers on GT Road corridor. Electric shuttle speeds moderated for student safety.',
     timestamp: '12 mins ago',
     category: 'system',
     severity: 'info',
@@ -76,7 +78,7 @@ const INITIAL_NOTIFICATIONS: SystemNotification[] = [
 
 export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [shuttles, setShuttles] = useState<ShuttleVehicle[]>(() => {
-    const saved = localStorage.getItem('shuttlesync_shuttles');
+    const saved = localStorage.getItem('shuttlesync_shuttles_v2');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -95,6 +97,8 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       isPeakHour: false,
       activeShuttlesCount: 5,
       isRaining: false,
+      isDriverGPSActive: false,
+      useGoogleMaps: true,
     };
   });
 
@@ -104,7 +108,7 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   });
 
   const [selectedShuttleId, setSelectedShuttleId] = useState<string | null>('shuttle-s101');
-  const [selectedStopId, setSelectedStopId] = useState<string | null>('stop-north-gate');
+  const [selectedStopId, setSelectedStopId] = useState<string | null>('stop-lpu-gate1');
   const [notifications, setNotifications] = useState<SystemNotification[]>(INITIAL_NOTIFICATIONS);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
@@ -138,7 +142,7 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, []);
 
-  // Main simulation heartbeat loop
+  // Main simulation heartbeat loop (Kinematics along real LPU coordinates & SVG paths)
   useEffect(() => {
     if (simulation.speedMultiplier === 0) return; // Paused
 
@@ -147,6 +151,9 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const timer = setInterval(() => {
       setShuttles(prevShuttles => {
         return prevShuttles.map(shuttle => {
+          // If vehicle is streaming real GPS from driver device, don't overwrite with simulation
+          if (shuttle.isRealGPS) return shuttle;
+
           const route = SHUTTLE_ROUTES.find(r => r.id === shuttle.routeId);
           if (!route) return shuttle;
 
@@ -181,7 +188,7 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             passengerCount = Math.max(2, Math.min(shuttle.capacity, passengerCount - alightCount + boardCount));
           }
 
-          // Calculate interpolated (x, y) along route path points
+          // Calculate interpolated SVG (x, y)
           const path = route.pathPoints;
           const totalSegments = path.length - 1;
           const globalProgress = (newProgress / 100);
@@ -196,6 +203,18 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
           const curX = Math.round(p1.x + (p2.x - p1.x) * segmentProgress);
           const curY = Math.round(p1.y + (p2.y - p1.y) * segmentProgress);
+
+          // Calculate interpolated real GPS (lat, lng)
+          const geoPath = route.geoCoordinates;
+          const totalGeoSegments = geoPath.length - 1;
+          const geoSegIdx = Math.min(totalGeoSegments - 1, Math.floor(globalProgress * totalGeoSegments));
+          const geoSegProgress = (globalProgress * totalGeoSegments) - geoSegIdx;
+
+          const g1 = geoPath[geoSegIdx];
+          const g2 = geoPath[geoSegIdx + 1] || geoPath[0];
+
+          const curLat = Number((g1.lat + (g2.lat - g1.lat) * geoSegProgress).toFixed(5));
+          const curLng = Number((g1.lng + (g2.lng - g1.lng) * geoSegProgress).toFixed(5));
 
           // Calculate heading angle
           const dx = p2.x - p1.x;
@@ -221,6 +240,8 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             progressPercent: newProgress,
             x: curX,
             y: curY,
+            lat: curLat,
+            lng: curLng,
             headingAngle,
             currentStopId,
             nextStopId,
@@ -236,9 +257,9 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return () => clearInterval(timer);
   }, [simulation.speedMultiplier, simulation.traffic, simulation.isRaining]);
 
-  // Persist shuttles state occasionally
+  // Persist state to localStorage occasionally
   useEffect(() => {
-    localStorage.setItem('shuttlesync_shuttles', JSON.stringify(shuttles));
+    localStorage.setItem('shuttlesync_shuttles_v2', JSON.stringify(shuttles));
   }, [shuttles]);
 
   const setSpeedMultiplier = (mult: number) => {
@@ -333,6 +354,38 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     soundManager.playChime();
   };
 
+  // Real GPS broadcasting from Driver device
+  const broadcastDriverGPS = (
+    shuttleId: string,
+    lat: number,
+    lng: number,
+    speed = 22,
+    heading = 0
+  ) => {
+    setShuttles(prev =>
+      prev.map(s => {
+        if (s.id !== shuttleId) return s;
+        return {
+          ...s,
+          lat,
+          lng,
+          speedKmh: Math.round(speed),
+          headingAngle: Math.round(heading),
+          isRealGPS: true,
+          lastUpdated: 'Live GPS',
+        };
+      })
+    );
+  };
+
+  const toggleDriverGPS = (active: boolean) => {
+    setSimulation(prev => ({ ...prev, isDriverGPSActive: active }));
+    if (!active) {
+      // Revert vehicle to simulated mode
+      setShuttles(prev => prev.map(s => ({ ...s, isRealGPS: false })));
+    }
+  };
+
   const markNotificationRead = (id: string) => {
     setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
   };
@@ -351,6 +404,8 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       isPeakHour: false,
       activeShuttlesCount: 5,
       isRaining: false,
+      isDriverGPSActive: false,
+      useGoogleMaps: true,
     });
     setNotifications(INITIAL_NOTIFICATIONS);
     soundManager.playChime();
@@ -379,6 +434,8 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updatePassengerCount,
         updateShuttleDelay,
         markStopReached,
+        broadcastDriverGPS,
+        toggleDriverGPS,
         markNotificationRead,
         markAllNotificationsRead,
         triggerNotification,

@@ -16,71 +16,72 @@ import {
   Leaf,
   Sparkles,
   ArrowRight,
+  MapPin,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const RoutePlannerView: React.FC = () => {
   const { shuttles, setSelectedStopId, triggerNotification } = useSimulation();
 
-  const [originId, setOriginId] = useState<string>('stop-hostel-zone');
-  const [destinationId, setDestinationId] = useState<string>('stop-science-hub');
+  const [originId, setOriginId] = useState<string>('stop-bh-hostel');
+  const [destinationId, setDestinationId] = useState<string>('stop-block-34-lib');
   const [selectedJourneyId, setSelectedJourneyId] = useState<string>('journey-1');
   const [expandedJourneyId, setExpandedJourneyId] = useState<string | null>('journey-1');
 
-  const originStop = CAMPUS_STOPS.find(s => s.id === originId) || CAMPUS_STOPS[0];
-  const destStop = CAMPUS_STOPS.find(s => s.id === destinationId) || CAMPUS_STOPS[3];
+  const originStop = CAMPUS_STOPS.find(s => s.id === originId) || CAMPUS_STOPS[4];
+  const destStop = CAMPUS_STOPS.find(s => s.id === destinationId) || CAMPUS_STOPS[1];
 
   const handleSwapStops = () => {
     setOriginId(destinationId);
     setDestinationId(originId);
   };
 
-  // Find candidate routes connecting origin and destination
+  // Find candidate routes connecting origin and destination in LPU
   const availableJourneys: RouteJourney[] = [
     {
       id: 'journey-1',
-      routeName: 'Route 202: Green Campus Loop',
-      routeColor: '#10b981',
-      shuttleId: 'shuttle-s201',
-      departureTime: 'Departs in 2 mins',
-      arrivalTime: 'Arrival in 11 mins',
-      totalDurationMinutes: 11,
+      routeName: 'Route 303: Hostel-Academics Direct Link',
+      routeColor: '#a855f7',
+      shuttleId: 'shuttle-s301',
+      departureTime: 'Departs in 3 mins',
+      arrivalTime: 'Arrival in 9 mins',
+      totalDurationMinutes: 9,
       walkMinutes: 2,
-      shuttleMinutes: 9,
+      shuttleMinutes: 7,
       stopsCount: 3,
-      stopsList: ['Hostel Clusters A-D', 'Sports Complex', 'South Gate', 'Biotech & Science Complex'],
+      stopsList: [originStop.name, 'Uni-Mall & Central Student Square', destStop.name],
       crowdLevel: 'Moderate',
       carbonSavedKg: 0.85,
     },
     {
       id: 'journey-2',
-      routeName: 'Route 303: Hostel-Academics Link',
-      routeColor: '#a855f7',
-      shuttleId: 'shuttle-s301',
-      departureTime: 'Departs in 4 mins',
-      arrivalTime: 'Arrival in 15 mins',
-      totalDurationMinutes: 15,
-      walkMinutes: 3,
+      routeName: 'Route 202: Green Campus Perimeter Loop',
+      routeColor: '#10b981',
+      shuttleId: 'shuttle-s201',
+      departureTime: 'Departs in 5 mins',
+      arrivalTime: 'Arrival in 14 mins',
+      totalDurationMinutes: 14,
+      walkMinutes: 2,
       shuttleMinutes: 12,
       stopsCount: 4,
-      stopsList: ['Hostel Clusters A-D', 'SAC & Food Court', 'Central Library', 'Biotech & Science Complex'],
+      stopsList: [originStop.name, 'Girls Hostel Quad (GH 1-6)', 'Sports Stadium', destStop.name],
       crowdLevel: 'Low',
-      carbonSavedKg: 0.92,
+      carbonSavedKg: 0.95,
     },
     {
       id: 'journey-3',
-      routeName: 'Express Walk & Blue Shuttle Transfer',
+      routeName: 'Uni-Mall Walk & Route 101 Transfer',
       routeColor: '#0284c7',
       shuttleId: 'shuttle-s101',
-      departureTime: 'Departs in 1 min',
-      arrivalTime: 'Arrival in 13 mins',
-      totalDurationMinutes: 13,
-      walkMinutes: 6,
-      shuttleMinutes: 7,
+      departureTime: 'Departs in 2 mins',
+      arrivalTime: 'Arrival in 11 mins',
+      totalDurationMinutes: 11,
+      walkMinutes: 5,
+      shuttleMinutes: 6,
       stopsCount: 2,
-      stopsList: ['Walk to Food Court', 'Board Blue Express', 'Biotech & Science Complex'],
+      stopsList: ['Walk to Uni-Mall Courtyard', 'Board GT Road Express S-101', destStop.name],
       crowdLevel: 'Low',
-      carbonSavedKg: 1.1,
+      carbonSavedKg: 1.15,
     },
   ];
 
@@ -99,7 +100,7 @@ export const RoutePlannerView: React.FC = () => {
     }
 
     triggerNotification({
-      title: 'Journey Confirmed',
+      title: 'LPU Campus Journey Confirmed',
       message: `Navigating via ${journey.routeName}. Head to ${originStop.name} for departure.`,
       category: 'route',
       severity: 'success',
@@ -114,16 +115,16 @@ export const RoutePlannerView: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 text-xs font-semibold mb-2">
             <Compass className="w-3.5 h-3.5" />
-            Inter-Campus Journey Architect
+            LPU Campus Transit Routing Engine
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Smart Campus Route Planner</h2>
           <p className="text-sm text-slate-400 mt-1">
-            Compare multi-modal walking segments, shuttle connections, transfer waypoints, and travel times.
+            Compare walking transfers, EV shuttle connections, arrival durations, and carbon savings across LPU campus.
           </p>
         </div>
 
-        <span className="text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full font-semibold">
-          Fictional Campus Prototype Environment
+        <span className="text-xs text-sky-400 bg-sky-400/10 border border-sky-400/20 px-3 py-1 rounded-full font-semibold">
+          Lovely Professional University, Phagwara
         </span>
       </div>
 
@@ -187,7 +188,7 @@ export const RoutePlannerView: React.FC = () => {
       <div className="space-y-4">
         <h3 className="text-base font-bold text-white flex items-center gap-2">
           <Navigation className="w-4 h-4 text-sky-400" />
-          Suggested Routes ({availableJourneys.length} Options)
+          Recommended Routes ({availableJourneys.length} Options Available)
         </h3>
 
         <div className="grid grid-cols-1 gap-4">
@@ -230,7 +231,7 @@ export const RoutePlannerView: React.FC = () => {
                         <span>•</span>
                         <span className="flex items-center gap-1 text-slate-300">
                           <Leaf className="w-3.5 h-3.5 text-emerald-400" />
-                          -{journey.carbonSavedKg} kg CO₂
+                          -{journey.carbonSavedKg} kg CO₂ offset
                         </span>
                       </div>
                     </div>
@@ -242,7 +243,7 @@ export const RoutePlannerView: React.FC = () => {
                         {journey.totalDurationMinutes} min
                       </div>
                       <div className="text-[11px] text-slate-400">
-                        {journey.walkMinutes}m walk + {journey.shuttleMinutes}m ride
+                        {journey.walkMinutes}m walk + {journey.shuttleMinutes}m transit
                       </div>
                     </div>
 
@@ -260,7 +261,7 @@ export const RoutePlannerView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Step-by-Step Waypoint Preview Bar */}
+                {/* Waypoint Preview Bar */}
                 <div className="mt-4 pt-4 border-t border-slate-800">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs text-slate-300 font-medium overflow-x-auto pb-1">
@@ -274,7 +275,7 @@ export const RoutePlannerView: React.FC = () => {
                       </span>
                       <ArrowRight className="w-3 h-3 text-slate-600 shrink-0" />
                       <span className="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg font-semibold">
-                        Arrive {destStop.name}
+                        Arrive at Destination
                       </span>
                     </div>
 
@@ -287,7 +288,7 @@ export const RoutePlannerView: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Expanded Intermediate Stops List */}
+                  {/* Expanded Stops Timeline */}
                   {isExpanded && (
                     <div className="mt-4 p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-3">
                       <div className="text-xs font-semibold text-slate-400 mb-2">Transit Stops Timeline:</div>
@@ -299,7 +300,7 @@ export const RoutePlannerView: React.FC = () => {
                           <div className="text-slate-200 font-medium">{stopName}</div>
                           {idx === 0 && <span className="text-[10px] text-emerald-400 font-semibold">(Boarding)</span>}
                           {idx === journey.stopsList.length - 1 && (
-                            <span className="text-[10px] text-sky-400 font-semibold">(Destination)</span>
+                            <span className="text-[10px] text-sky-400 font-semibold">(Dropoff)</span>
                           )}
                         </div>
                       ))}

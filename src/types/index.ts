@@ -8,18 +8,26 @@ export type TrafficCondition = 'Light' | 'Normal' | 'Moderate' | 'Heavy';
 
 export type WeatherCondition = 'Clear' | 'Rainy' | 'Foggy';
 
+export interface LatLng {
+  lat: number;
+  lng: number;
+}
+
 export interface CampusStop {
   id: string;
   name: string;
   code: string;
-  x: number; // Percentage or SVG coordinate
+  x: number; // SVG coordinate fallback
   y: number;
+  lat: number; // Real geographical latitude (LPU)
+  lng: number; // Real geographical longitude (LPU)
   type: 'academic' | 'hostel' | 'gate' | 'amenity' | 'library';
   description: string;
   facilities: string[];
   currentCrowdCount: number;
   avgWaitMinutes: number;
   sheltered: boolean;
+  landmarkSnippet?: string;
 }
 
 export interface ShuttleRoute {
@@ -29,7 +37,8 @@ export interface ShuttleRoute {
   color: string;
   badgeBg: string;
   stops: string[]; // stop IDs in order
-  pathPoints: { x: number; y: number }[]; // Coordinates for SVG road path
+  pathPoints: { x: number; y: number }[]; // SVG coordinates
+  geoCoordinates: LatLng[]; // Real geographical polyline coordinates (LPU)
   loopDurationMinutes: number;
   operatingHours: string;
   frequencyMinutes: number;
@@ -49,12 +58,15 @@ export interface ShuttleVehicle {
   batteryPercent: number;
   status: ShuttleStatus;
   progressPercent: number; // 0-100% between stops
-  x: number; // Current visual coordinates
+  x: number; // SVG coordinate fallback
   y: number;
+  lat: number; // Real GPS latitude
+  lng: number; // Real GPS longitude
   headingAngle: number; // 0-360 degrees
   delayMinutes: number;
   estimatedTimeToNextStop: number; // in seconds
   lastUpdated: string;
+  isRealGPS?: boolean; // True if broadcasting from real device GPS
 }
 
 export interface SmartRecommendation {
@@ -105,4 +117,36 @@ export interface SimulationState {
   isPeakHour: boolean;
   activeShuttlesCount: number;
   isRaining: boolean;
+  isDriverGPSActive: boolean;
+  useGoogleMaps: boolean;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  fullName: string;
+  studentId: string;
+  role: UserRole;
+  avatarUrl?: string;
+  favoriteStopIds: string[];
+  savedRouteIds: string[];
+  createdAt: string;
+}
+
+export interface SavedRoute {
+  id: string;
+  title: string;
+  originStopId: string;
+  destinationStopId: string;
+  preferredRouteId?: string;
+  addedAt: string;
+}
+
+export interface JourneyHistoryEntry {
+  id: string;
+  originName: string;
+  destinationName: string;
+  routeName: string;
+  durationMinutes: number;
+  timestamp: string;
 }

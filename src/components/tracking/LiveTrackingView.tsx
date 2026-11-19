@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useSimulation } from '../../context/SimulationContext';
 import { CAMPUS_STOPS, SHUTTLE_ROUTES } from '../../data/campusData';
-import { CampusMap } from '../map/CampusMap';
+import { GoogleCampusMap } from '../map/GoogleCampusMap';
+import { CampusMap as FallbackSVGMap } from '../map/CampusMap';
 import { ShuttleDetailCard } from './ShuttleDetailCard';
 import { Badge } from '../common/Badge';
 import {
@@ -14,6 +15,8 @@ import {
   Search,
   Sparkles,
   Info,
+  Layers,
+  Map,
 } from 'lucide-react';
 
 export const LiveTrackingView: React.FC = () => {
@@ -27,6 +30,7 @@ export const LiveTrackingView: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [useGoogleMap, setUseGoogleMap] = useState<boolean>(true);
 
   const selectedShuttle = shuttles.find(s => s.id === selectedShuttleId) || shuttles[0];
   const selectedStop = CAMPUS_STOPS.find(s => s.id === selectedStopId) || CAMPUS_STOPS[0];
@@ -47,29 +51,55 @@ export const LiveTrackingView: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 text-xs font-semibold mb-2">
             <Compass className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '12s' }} />
-            Active Fleet Radar
+            Active Fleet Radar • Lovely Professional University (LPU)
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Live Campus Shuttle Radar</h2>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Live LPU Campus Shuttle Radar</h2>
           <p className="text-sm text-slate-400 mt-1">
-            Real-time GPS telemetry, live passenger occupancy, and turn-by-turn route headway.
+            Real-time GPS telemetry, live passenger occupancy, and turn-by-turn route headway across LPU campus.
           </p>
         </div>
 
-        {/* Quick Stop Switcher */}
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-sky-400 shrink-0" />
-          <span className="text-xs text-slate-400 font-medium">Viewing Stop:</span>
-          <select
-            value={selectedStopId || ''}
-            onChange={e => setSelectedStopId(e.target.value)}
-            className="bg-slate-800 text-slate-200 text-xs font-semibold rounded-xl px-3 py-2 border border-slate-700 focus:outline-none focus:border-sky-500 cursor-pointer"
-          >
-            {CAMPUS_STOPS.map(stop => (
-              <option key={stop.id} value={stop.id}>
-                {stop.code} - {stop.name}
-              </option>
-            ))}
-          </select>
+        {/* Quick Actions: Stop Switcher & Map Mode Toggle */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Map Mode Switcher */}
+          <div className="flex items-center p-1 rounded-xl bg-slate-800 border border-slate-700 text-xs">
+            <button
+              onClick={() => setUseGoogleMap(true)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all ${
+                useGoogleMap
+                  ? 'bg-sky-500 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Map className="w-3.5 h-3.5" /> Google Maps
+            </button>
+            <button
+              onClick={() => setUseGoogleMap(false)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all ${
+                !useGoogleMap
+                  ? 'bg-sky-500 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" /> Campus Vector
+            </button>
+          </div>
+
+          {/* Quick Stop Switcher */}
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-sky-400 shrink-0" />
+            <select
+              value={selectedStopId || ''}
+              onChange={e => setSelectedStopId(e.target.value)}
+              className="bg-slate-800 text-slate-200 text-xs font-semibold rounded-xl px-3 py-2 border border-slate-700 focus:outline-none focus:border-sky-500 cursor-pointer"
+            >
+              {CAMPUS_STOPS.map(stop => (
+                <option key={stop.id} value={stop.id}>
+                  {stop.code} - {stop.name.slice(0, 24)}...
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -77,7 +107,11 @@ export const LiveTrackingView: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Interactive Map (8 cols) */}
         <div className="lg:col-span-8 space-y-4">
-          <CampusMap heightClass="h-[540px]" />
+          {useGoogleMap ? (
+            <GoogleCampusMap heightClass="h-[540px]" />
+          ) : (
+            <FallbackSVGMap heightClass="h-[540px]" />
+          )}
 
           {/* Map Guidance Footer */}
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-slate-900/70 border border-slate-800/80 text-xs text-slate-400">
@@ -93,7 +127,7 @@ export const LiveTrackingView: React.FC = () => {
             </div>
             <div className="flex items-center gap-1.5 text-sky-400 font-medium">
               <Sparkles className="w-3.5 h-3.5" />
-              Animated Shuttle Cart Cursor active on desktop map
+              Lovely Professional University, Phagwara, Punjab
             </div>
           </div>
         </div>
@@ -110,9 +144,9 @@ export const LiveTrackingView: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                 <Bus className="w-4 h-4 text-sky-400" />
-                All Active Shuttles ({shuttles.length})
+                Active LPU Fleet ({shuttles.length})
               </h3>
-              <span className="text-[11px] text-slate-400">Select to highlight</span>
+              <span className="text-[11px] text-slate-400">Select to inspect</span>
             </div>
 
             {/* Search and Filter */}
@@ -164,6 +198,11 @@ export const LiveTrackingView: React.FC = () => {
                           style={{ backgroundColor: route?.color || '#0284c7' }}
                         />
                         <span className="text-xs font-bold text-white">{shuttle.name}</span>
+                        {shuttle.isRealGPS && (
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            LIVE GPS
+                          </span>
+                        )}
                       </div>
                       <Badge status={shuttle.status} />
                     </div>
